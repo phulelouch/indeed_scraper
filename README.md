@@ -3,6 +3,6 @@
 Need wget
 
 Install:
-	pip install -r requirements.txt
-Usage:
-	python3 main.py -q IT
+\n pip install -r requirements.txt
+\nUsage:
+\npython3 main.py -q IT
