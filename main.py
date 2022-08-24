@@ -13,16 +13,33 @@ def get_number_of_job(param):
     os.system(command)
     f = open("tmp.html", "r")
     txt = f.read()
-    number_of_jobs = re.findall("Page \d+ of \d+ jobs", txt)[0][10:13]
+    text = open("tmp.html", "r").read()
+    soup = BeautifulSoup(text, 'html.parser')
+    #If 14 days 
+    # number_of_jobs= soup.find("div",id="searchCountPages").text.replace(',', '')[31:36]
+    # number_of_jobs=int(number_of_jobs)
+    # print(number_of_jobs)
+    number_of_jobs = re.findall("Page \d+ of \d+ jobs", txt)[0][10:14]
     number_of_jobs = int(number_of_jobs)
     return number_of_jobs
 
+def wget_link(link):
+    command = "wget \"" + link + "\" -O ->> link.html"
+    os.system(command)
 
-def wget_link(q, i):
+def wget_job(q, i):
     link = 'https://au.indeed.com/jobs?q={q}&l=Australia&fromage=1&start={i}'
     command = "wget \"" + link.format(q=q, i=i) + "\" -O ->> tmp.html"
     print(command)
     os.system(command)
+
+def get_description(link):
+    wget_link(link)
+    text = open("link.html", "r").read()
+    soup = BeautifulSoup(text, 'html.parser')
+    job_class = soup.find('div', class_="jobsearch-jobDescriptionText")
+    des=str(job_class).replace('<div class="jobsearch-jobDescriptionText" id="jobDescriptionText"><div></div>','').replace('<div>\n','').replace('</div>\n','').replace('</div>','').replace('<b>','').replace('</b>','').replace('<li>','').replace('</ul>','').replace('<ul>','').replace('<br/>','').replace('<i>','').replace('</i>','').replace('<p>','').replace('</p>','')
+    return des
 
 
 def get_info(q):
@@ -31,7 +48,7 @@ def get_info(q):
     print(number_of_page)
     for n in range(1, number_of_page):
         i = str(n) + "0"
-        wget_link(q, i)
+        wget_job(q, i)
 
 
 def get_jobs_details():
@@ -39,7 +56,6 @@ def get_jobs_details():
     soup = BeautifulSoup(text, 'html.parser')
     div_class = soup.findAll('div', class_='job_seen_beacon')
     all_jobs = []
-    # for i in range(len(div_class)):
 
     for i in range(len(div_class)):
         job = []
@@ -52,6 +68,7 @@ def get_jobs_details():
                                None)  # company rate
         location = getattr(div_class[i].find("div", class_="companyLocation"), 'text', None)  # location
         attribute = getattr(div_class[i].find("div", class_="attribute_snippet"), 'text', None)
+        #description = get_description(link) # too long, too much requests, if use add to var bellow
 
         var = [hyper_link, position, company_name, company_rate, location, attribute]
         for v in var:
@@ -78,6 +95,7 @@ def __getattr__(name):
     get_info(q)
     os.system("rm myfile.csv")
     get_jobs_details()
+    #get_description("https://au.indeed.com/viewjob?jk=f8e4ea49037e1d9b&tk=1gb5l2cjois5p800&from=serp&vjs=3&advn=742642328266002&adid=395532684&ad=-6NYlbfkN0BJG9y3HqDq1UrsL1yS36eji4Wa8aOTFkGDtV0UVAvQv8Gdx7nNMHGXRAyTqhu1XLDlBJYrCkkOV8fPU82QzXEb_Q6KgnB9-YRZIoTsavliWxBAKi9jImlbQCXYfGJdS4Qt50Vmb4y8eCvI41d1CLaUNXfhwpKLwRr415xeLmkUB_EDcgJclgljOs0izs0lySqXipIAmO4Lm6GCGyAcqgs9QGJ9leQCRoLnGxlvtYXSksfC3zuRPXXS8FAFzPyYB007GWdyFslKu2tsIISwkc6CKRLBX7Wm5iHEDaw-lVX4Jr1r_FxBqMMN2-Cjaa8hQSWSYUzT_99X9YgWGkKnh_U9sCcePSJx-ztAqkj6mFdBIw==&sjdu=ab_jN-s1IW_zU0BCrfb3pAzVVmVAdOxpI_gK6Pwy05Agr_S1W0bu4l5SKlyKdzTtGkiL_Jk6eJHPQrhyhA20lQDPqshxPTWNQbr3De1CgQcZOa_1EGtEkjRa3Rc19he8LvlCM4M6p-1EygJQHRDBExsgrtEadDJeYNkAPZy7YB8uffaP4rCb3sX21CRmcWn8OdDpNO5_DvWFJazXaLuHCOnkWflLdO-AbgaWEh-5eKp7XxPX6gxwg0Hngh37ssTU_3yQYE32Z0Has1eSmOAfOjQ2b9Il319ZICwwVIqdchs")
 
 
 __getattr__("main")
